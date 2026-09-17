@@ -1,0 +1,74 @@
+name: ImpactCapture
+options:
+  bundleIdPrefix: com.nicolasfrugoni
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: VQDNM3C2SW
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Apple Development"
+targets:
+  ImpactCaptureCore:
+    type: framework
+    platform: macOS
+    sources: [Sources/ImpactCaptureCore]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nicolasfrugoni.ImpactCaptureCore
+        GENERATE_INFOPLIST_FILE: YES
+
+  ImpactCapture:
+    type: application
+    platform: macOS
+    sources: [Sources/ImpactCapture]
+    dependencies:
+      - target: ImpactCaptureCore
+    info:
+      path: Sources/ImpactCapture/Info.plist
+      properties:
+        CFBundleDisplayName: Impact Capture
+        CFBundleName: Impact Capture
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        NSHumanReadableCopyright: Capture the work that never makes it into a commit.
+        LSApplicationCategoryType: public.app-category.productivity
+        NSMicrophoneUsageDescription: Impact Capture listens only while you choose to talk, to turn what you say into a written note.
+        NSSpeechRecognitionUsageDescription: Impact Capture transcribes your spoken notes on this Mac.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.nicolasfrugoni.ImpactCapture
+            CFBundleURLSchemes: [impactcapture]
+    entitlements:
+      path: Sources/ImpactCapture/ImpactCapture.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nicolasfrugoni.ImpactCapture
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  ImpactCaptureCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests/ImpactCaptureCoreTests]
+    dependencies:
+      - target: ImpactCaptureCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nicolasfrugoni.ImpactCaptureCoreTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  ImpactCapture:
+    build:
+      targets:
+        ImpactCapture: all
+        ImpactCaptureCoreTests: [test]
+    test:
+      targets: [ImpactCaptureCoreTests]
