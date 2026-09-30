@@ -3,7 +3,7 @@ APP := $(DERIVED_DATA)/Build/Products/Release/ImpactCapture.app
 INSTALL_DIR := $(HOME)/Applications
 XCODEBUILD := xcodebuild -project ImpactCapture.xcodeproj -scheme ImpactCapture -derivedDataPath $(DERIVED_DATA) -quiet
 
-.PHONY: project build test install uninstall clean icon snapshots release
+.PHONY: project build test install uninstall clean icon snapshots release brew-release
 
 project:
 	xcodegen generate --quiet
@@ -39,3 +39,7 @@ snapshots: project
 
 release:
 	scripts/release.sh
+
+# GitHub release + Homebrew cask update in frugoman/homebrew-tap.
+brew-release:
+	scripts/brew-release.sh

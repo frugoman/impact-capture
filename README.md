@@ -13,7 +13,13 @@ Impact Capture is a small macOS menu bar app that catches it in the moment:
 
 ## Install
 
-Download the latest `Impact-Capture-x.y.z.dmg` from [Releases](../../releases), drag it to Applications and open it. Setup takes a minute: pick a folder, choose how often it may check in, and set your shortcuts.
+With [Homebrew](https://brew.sh):
+
+```bash
+brew install --cask frugoman/tap/impact-capture
+```
+
+Or download the latest build from [Releases](../../releases), move it to Applications and open it. Setup takes a minute: pick a folder, choose how often it may check in, and set your shortcuts.
 
 Requires macOS 15 or later.
 
@@ -74,6 +80,7 @@ make test        # unit tests for ImpactCaptureCore
 make snapshots   # render every screen (light + dark) to build/snapshots
 make icon        # regenerate the app icon
 make release     # signed + notarized DMG (see scripts/release.sh for setup)
+make brew-release  # GitHub release + update the cask in frugoman/homebrew-tap
 ```
 
 - `Sources/ImpactCaptureCore` has the pure logic: file format, storage, check-in policy, questions, stats and export. It's fully unit tested.
