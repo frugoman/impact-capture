@@ -19,7 +19,7 @@ With [Homebrew](https://brew.sh):
 brew install --cask frugoman/tap/impact-capture
 ```
 
-Or download the latest build from [Releases](../../releases), move it to Applications and open it. Setup takes a minute: pick a folder, choose how often it may check in, and set your shortcuts.
+Or download the latest zip from [Releases](https://github.com/frugoman/homebrew-tap/releases?q=impact-capture), unzip it, move it to Applications and open it. Setup takes a minute: pick a folder, choose how often it may check in, and set your shortcuts.
 
 Requires macOS 15 or later.
 
@@ -80,7 +80,7 @@ make test        # unit tests for ImpactCaptureCore
 make snapshots   # render every screen (light + dark) to build/snapshots
 make icon        # regenerate the app icon
 make release     # signed + notarized DMG (see scripts/release.sh for setup)
-make brew-release  # GitHub release + update the cask in frugoman/homebrew-tap
+make brew-release  # release the zip + update the cask on frugoman/homebrew-tap
 ```
 
 - `Sources/ImpactCaptureCore` has the pure logic: file format, storage, check-in policy, questions, stats and export. It's fully unit tested.

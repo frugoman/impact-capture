@@ -1,5 +1,6 @@
 #!/bin/bash
-# Builds Impact Capture, publishes it as a GitHub release, and updates the Homebrew cask in frugoman/homebrew-tap.
+# Builds Impact Capture, publishes the zip as a release on the public frugoman/homebrew-tap (this repo stays
+# private), and updates the Homebrew cask there.
 #
 # The app is signed with the project's Apple Development identity but not notarized, so the cask drops the
 # quarantine flag after install. For a notarized DMG, use scripts/release.sh instead.
@@ -9,13 +10,13 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-REPO=frugoman/impact-capture
 TAP=frugoman/homebrew-tap
 BUILD="build/brew"
 VERSION="$(grep -m1 'MARKETING_VERSION' project.yml | sed -E 's/.*"(.*)".*/\1/')"
+TAG="impact-capture-v$VERSION"
 ZIP="$BUILD/Impact-Capture-$VERSION.zip"
 
-if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
+if gh release view "$TAG" --repo "$TAP" >/dev/null 2>&1; then
   echo "v$VERSION is already released. Bump MARKETING_VERSION in project.yml first." >&2
   exit 1
 fi
@@ -37,8 +38,9 @@ cp -R "$BUILD/DerivedData/Build/Products/Release/ImpactCapture.app" "$BUILD/Impa
 ditto -c -k --keepParent "$BUILD/Impact Capture.app" "$ZIP"
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 
-echo "==> Publishing GitHub release v$VERSION"
-gh release create "v$VERSION" "$ZIP" --repo "$REPO" --title "Impact Capture $VERSION" --generate-notes
+echo "==> Publishing release $TAG on $TAP"
+gh release create "$TAG" "$ZIP" --repo "$TAP" --title "Impact Capture $VERSION" \
+  --notes "Install with: brew install --cask frugoman/tap/impact-capture"
 
 echo "==> Updating the cask in $TAP"
 TMP=$(mktemp -d)
@@ -49,10 +51,10 @@ cask "impact-capture" do
   version "$VERSION"
   sha256 "$SHA"
 
-  url "https://github.com/$REPO/releases/download/v#{version}/Impact-Capture-#{version}.zip"
+  url "https://github.com/$TAP/releases/download/impact-capture-v#{version}/Impact-Capture-#{version}.zip"
   name "Impact Capture"
   desc "Menu bar app that captures the work that never makes it into a commit"
-  homepage "https://github.com/$REPO"
+  homepage "https://github.com/$TAP"
 
   depends_on macos: :sequoia
 

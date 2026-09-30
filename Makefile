@@ -40,6 +40,6 @@ snapshots: project
 release:
 	scripts/release.sh
 
-# GitHub release + Homebrew cask update in frugoman/homebrew-tap.
+# Release zip + Homebrew cask update on frugoman/homebrew-tap.
 brew-release:
 	scripts/brew-release.sh
