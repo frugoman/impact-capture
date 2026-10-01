@@ -2,7 +2,7 @@
 
 **Capture the work that never makes it into a commit.** · [Website](https://frugoman.github.io/impact-capture/)
 
-![A check-in after a break, answered in a few seconds and logged to today's captures](docs/assets/demo.gif)
+![The Impact Capture popover: today's captures on a timeline, with a week strip and streak](docs/assets/popover.png)
 
 The coffee chat that unblocked a team. The review comment that changed a design. The risk you called early. For senior engineers this is a big part of the job, it leaves no trace in Jira or GitHub, and it's gone from memory by review season.
 

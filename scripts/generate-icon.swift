@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Renders the app icon (capture ring + escaping spark on ink) into the asset catalog.
+// Renders the app icon (highlighter capture ring + escaping spark on night ink) into the asset catalog.
 // Usage: swift scripts/generate-icon.swift
 
 import AppKit
@@ -31,15 +31,15 @@ func render(pixels: Int) -> Data {
     shadow.shadowBlurRadius = 28
     shadow.shadowOffset = NSSize(width: 0, height: -12)
     shadow.set()
-    color(0x14161B).setFill()
+    color(0x111433).setFill()
     shape.fill()
     NSGraphicsContext.restoreGraphicsState()
 
-    NSGradient(starting: color(0x262A34), ending: color(0x0E1014))!.draw(in: shape, angle: -90)
+    NSGradient(starting: color(0x2C347A), ending: color(0x0F1230))!.draw(in: shape, angle: -90)
 
     let center = NSPoint(x: 512, y: 512)
     let radius: CGFloat = 238
-    let spark = color(0xFF6A3D)
+    let spark = color(0xFFDE3B)
 
     // Faint orbit behind the ring.
     let orbit = NSBezierPath(ovalIn: NSRect(x: center.x - 318, y: center.y - 318, width: 636, height: 636))
@@ -60,7 +60,7 @@ func render(pixels: Int) -> Data {
     // The spark escaping through the gap.
     let angle = 46 * CGFloat.pi / 180
     let sparkCenter = NSPoint(x: center.x + (radius + 70) * cos(angle), y: center.y + (radius + 70) * sin(angle))
-    color(0xFFB08F).setFill()
+    color(0xFFF0A6).setFill()
     NSBezierPath(ovalIn: NSRect(x: sparkCenter.x - 38, y: sparkCenter.y - 38, width: 76, height: 76)).fill()
 
     NSGraphicsContext.restoreGraphicsState()

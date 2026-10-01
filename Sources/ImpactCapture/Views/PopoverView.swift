@@ -45,19 +45,45 @@ struct PopoverView: View {
                 .padding(.vertical, 8)
         }
         .frame(width: 400, height: 580)
-        .background(Brand.background)
+        .background(PaperBackground())
     }
 
     // MARK: Header
 
     private var header: some View {
-        HStack(alignment: .center) {
-            Wordmark()
+        HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    LogoMark(size: 22)
+                    Text("Impact Capture")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Brand.secondaryText)
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("\(model.stats.today)")
+                        .font(Brand.display(30, .bold))
+                        .foregroundStyle(Brand.text)
+                        .contentTransition(.numericText())
+                        .animation(Brand.springy, value: model.stats.today)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(model.stats.today == 1 ? "capture today" : "captures today")
+                            .font(.system(size: 11.5, weight: .medium))
+                            .foregroundStyle(Brand.text)
+                        Text("\(model.stats.thisWeek) this week")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Brand.tertiaryText)
+                    }
+                }
+            }
             Spacer()
-            HStack(spacing: 14) {
-                StatView(value: model.stats.today, label: "today")
-                StatView(value: model.stats.thisWeek, label: "week")
-                StatView(value: model.stats.streak, label: "streak", highlight: model.stats.streak >= 3)
+            VStack(alignment: .trailing, spacing: 6) {
+                if model.stats.streak >= 2 {
+                    Text("\(model.stats.streak)-day streak")
+                        .font(.system(size: 10.5, weight: .semibold))
+                        .foregroundStyle(Brand.onHighlighter)
+                        .highlighted(opacity: 1)
+                }
+                WeekStrip(captures: model.week)
             }
         }
     }
@@ -79,13 +105,14 @@ struct PopoverView: View {
             HStack(spacing: 6) {
                 if justLogged {
                     Label("Logged", systemImage: "checkmark")
-                        .font(Brand.mono(11, .medium))
-                        .foregroundStyle(Brand.success)
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(Brand.onHighlighter)
+                        .highlighted(opacity: 1, animated: true)
                         .transition(.opacity)
                 } else if let shortcut = model.settings.typingShortcut {
                     KeyCap(text: shortcut.displayString)
-                    Text("from anywhere")
-                        .font(Brand.mono(10))
+                    Text("logs from anywhere")
+                        .font(.system(size: 11))
                         .foregroundStyle(Brand.tertiaryText)
                 }
                 Spacer()
@@ -155,18 +182,23 @@ struct PopoverView: View {
                         ForEach(groupedByDay(Array(entries)), id: \.day) { group in
                             if scope == .week {
                                 Text(group.day.formatted(.dateTime.weekday(.wide).day().month()))
-                                    .font(Brand.mono(10.5, .medium))
-                                    .foregroundStyle(Brand.tertiaryText)
+                                    .font(Brand.display(11, .semibold))
+                                    .foregroundStyle(Brand.secondaryText)
                                     .padding(.horizontal, 16)
                                     .padding(.top, 8)
                                     .padding(.bottom, 4)
                             }
                             ForEach(group.items) { stored in
-                                CaptureRow(model: model, stored: stored)
+                                CaptureRow(model: model, stored: stored, isLast: stored.id == group.items.last?.id)
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .top).combined(with: .opacity),
+                                        removal: .opacity
+                                    ))
                             }
                         }
                     }
                     .padding(.bottom, 8)
+                    .animation(Brand.springy, value: entries.map(\.id))
                 }
             }
         }
@@ -233,22 +265,61 @@ struct PopoverView: View {
     }
 }
 
-private struct StatView: View {
-    let value: Int
-    let label: String
-    var highlight = false
+/// This week as seven small bars, today drawn in highlighter.
+private struct WeekStrip: View {
+    let captures: [StoredCapture]
+    @State private var grown = Brand.isRenderingSnapshot
+
+    private var days: [(date: Date, count: Int)] {
+        let calendar = Calendar.current
+        let start = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? calendar.startOfDay(for: Date())
+        return (0..<7).compactMap { offset in
+            guard let day = calendar.date(byAdding: .day, value: offset, to: start) else { return nil }
+            return (day, captures.filter { $0.day == day }.count)
+        }
+    }
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 0) {
-            Text("\(value)")
-                .font(Brand.mono(16, .semibold))
-                .foregroundStyle(highlight ? Brand.spark : Brand.text)
-                .contentTransition(.numericText())
-            Text(label)
-                .font(Brand.mono(9.5))
-                .foregroundStyle(Brand.tertiaryText)
+        let days = days
+        let peak = max(days.map(\.count).max() ?? 0, 3)
+        HStack(alignment: .bottom, spacing: 5) {
+            ForEach(Array(days.enumerated()), id: \.offset) { index, day in
+                let isToday = Calendar.current.isDateInToday(day.date)
+                let isFuture = day.date > Date()
+                VStack(spacing: 4) {
+                    ZStack(alignment: .bottom) {
+                        Capsule().fill(Brand.raised.opacity(isFuture ? 0.5 : 1)).frame(width: 7, height: 26)
+                        Capsule()
+                            .fill(isToday ? Brand.highlighter : Brand.text.opacity(0.72))
+                            .overlay(Capsule().stroke(isToday ? Brand.onHighlighter.opacity(0.25) : .clear))
+                            .frame(width: 7, height: day.count == 0 ? 0 : max(6, 26 * CGFloat(day.count) / CGFloat(peak)))
+                            .scaleEffect(y: grown ? 1 : 0, anchor: .bottom)
+                            .animation(Brand.springy.delay(Double(index) * 0.035), value: grown)
+                    }
+                    Text(day.date.formatted(.dateTime.weekday(.narrow)))
+                        .font(.system(size: 9, weight: isToday ? .bold : .regular))
+                        .foregroundStyle(isToday ? Brand.text : Brand.tertiaryText)
+                }
+                .help("\(day.date.formatted(.dateTime.weekday(.wide))): \(day.count) \(day.count == 1 ? "capture" : "captures")")
+            }
         }
-        .animation(.snappy, value: value)
+        .onAppear { grown = true }
+    }
+}
+
+/// A dotted stand-in for the timeline when there's nothing on it yet.
+private struct EmptySpine: View {
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .strokeBorder(Brand.tertiaryText, style: StrokeStyle(lineWidth: 1.5, dash: [2, 2]))
+                    .frame(width: 12, height: 12)
+                if index < 2 {
+                    Rectangle().fill(Brand.hairline).frame(width: 28, height: 1.5)
+                }
+            }
+        }
     }
 }
 
@@ -264,14 +335,13 @@ private struct SegmentedTabs: View {
                 } label: {
                     Text(scope.rawValue)
                         .font(.system(size: 12, weight: selection == scope ? .semibold : .regular))
-                        .foregroundStyle(selection == scope ? Brand.text : Brand.secondaryText)
+                        .foregroundStyle(selection == scope ? Brand.onHighlighter : Brand.secondaryText)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background {
                             if selection == scope {
-                                Capsule()
-                                    .fill(Brand.surface)
-                                    .overlay(Capsule().stroke(Brand.hairline))
+                                HighlightShape()
+                                    .fill(Brand.highlighter)
                                     .matchedGeometryEffect(id: "tab", in: namespace)
                             }
                         }
@@ -281,7 +351,6 @@ private struct SegmentedTabs: View {
             }
         }
         .padding(2)
-        .background(Capsule().fill(Brand.raised.opacity(0.6)))
     }
 }
 
@@ -291,10 +360,9 @@ private struct EmptyTimeline: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Text(scope == .today ? "$ git log --today" : "$ git log --this-week")
-                .font(Brand.mono(11))
-                .foregroundStyle(Brand.tertiaryText)
-            Text("Nothing logged yet.")
+            EmptySpine()
+                .padding(.bottom, 4)
+            Text(scope == .today ? "Nothing logged today." : "Nothing logged this week.")
                 .font(Brand.display(15))
                 .foregroundStyle(Brand.text)
             Text("That hallway chat, the review that changed a design,\nthe teammate you unblocked: they all count.")
@@ -334,6 +402,7 @@ private struct FooterButton: View {
 struct CaptureRow: View {
     @ObservedObject var model: AppModel
     let stored: StoredCapture
+    var isLast = false
 
     @State private var isHovered = false
     @State private var isEditing = false
@@ -343,7 +412,7 @@ struct CaptureRow: View {
 
     private var capture: Capture { stored.capture }
     private var category: CaptureCategory? { model.category(for: capture.categoryID) }
-    private var accent: Color { category.map { Brand.color($0.color) } ?? Brand.hairline }
+    private var accent: Color { category.map { Brand.color($0.color) } ?? Brand.tertiaryText }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -357,9 +426,18 @@ struct CaptureRow: View {
             }
             .frame(width: 38, alignment: .leading)
 
-            RoundedRectangle(cornerRadius: 1.5)
-                .fill(accent)
-                .frame(width: 3)
+            // The spine: one node per capture, like a commit graph for the work git doesn't see.
+            ZStack(alignment: .top) {
+                Circle()
+                    .fill(accent)
+                    .frame(width: 9, height: 9)
+                    .overlay(Circle().stroke(Brand.background, lineWidth: 2.5))
+                    .scaleEffect(isHovered ? 1.25 : 1)
+                    .animation(.snappy(duration: 0.18), value: isHovered)
+                    .padding(.top, 3)
+            }
+            .frame(width: 12)
+            .frame(maxHeight: .infinity, alignment: .top)
 
             VStack(alignment: .leading, spacing: 6) {
                 if isEditing {
@@ -372,7 +450,15 @@ struct CaptureRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 9)
-        .background(isHovered && !isEditing ? Brand.raised.opacity(0.45) : .clear)
+        .background(alignment: .topLeading) {
+            // Time column (38) + spacing (12) + half the node column (6), inside the 16pt inset.
+            Rectangle()
+                .fill(Brand.hairline)
+                .frame(width: 1.5)
+                .frame(maxHeight: isLast ? 20 : .infinity, alignment: .top)
+                .offset(x: 16 + 38 + 12 + 6 - 0.75)
+        }
+        .background(isHovered && !isEditing ? Brand.surface.opacity(0.7) : .clear)
         .onHover { isHovered = $0 }
         .contextMenu {
             Button("Edit", action: beginEdit)
@@ -406,8 +492,9 @@ struct CaptureRow: View {
         HStack(spacing: 6) {
             if let category {
                 Text(category.name)
-                    .font(Brand.mono(10, .medium))
-                    .foregroundStyle(Brand.color(category.color))
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(Brand.text)
+                    .highlighted(Brand.color(category.color), opacity: 0.32)
             }
             Spacer()
             if isHovered {

@@ -35,7 +35,7 @@ struct OnboardingView: View {
         .padding(.top, 44)
         .padding(.bottom, 28)
         .frame(width: 640, height: 640)
-        .background(Brand.background)
+        .background(PaperBackground())
     }
 
     // MARK: Chrome
@@ -45,13 +45,13 @@ struct OnboardingView: View {
             HStack(spacing: 6) {
                 ForEach(0..<stepCount, id: \.self) { index in
                     Capsule()
-                        .fill(index <= step ? Brand.spark : Brand.hairline)
-                        .frame(width: index == step ? 28 : 12, height: 4)
+                        .fill(index == step ? Brand.highlighter : index < step ? Brand.text.opacity(0.7) : Brand.hairline)
+                        .frame(width: index == step ? 28 : 12, height: 5)
                 }
             }
             Spacer()
-            Text("setup \(step + 1)/\(stepCount)")
-                .font(Brand.mono(11))
+            Text("Step \(step + 1) of \(stepCount)")
+                .font(.system(size: 11.5))
                 .foregroundStyle(Brand.tertiaryText)
         }
         .animation(.snappy, value: step)
@@ -83,7 +83,8 @@ struct OnboardingView: View {
     private func title(_ text: String, _ subtitle: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(text)
-                .font(Brand.display(26, .bold))
+                .font(Brand.display(25, .bold))
+                .lineSpacing(1)
                 .foregroundStyle(Brand.text)
             Text(subtitle)
                 .font(.system(size: 14))
@@ -142,7 +143,8 @@ struct OnboardingView: View {
                 Text("2026-09-17.md")
                     .foregroundStyle(Brand.tertiaryText)
                 Text("### 10:42 · prompt · away-return · voice · #collaboration")
-                    .foregroundStyle(Brand.spark)
+                    .foregroundStyle(Brand.text)
+                    .highlighted(opacity: 0.55)
                 Text("> Q: You were away 25 min. Did you talk to anyone about work?")
                     .foregroundStyle(Brand.secondaryText)
                 Text("Coffee with Marco from Payments. We agreed to split the\nmigration into two PRs so they can ship their part first.")
@@ -223,9 +225,9 @@ private struct FeatureRow: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: systemImage)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(Brand.spark)
+                .foregroundStyle(Brand.onHighlighter)
                 .frame(width: 36, height: 36)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Brand.spark.opacity(0.12)))
+                .background(Circle().fill(Brand.highlighter))
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 13.5, weight: .semibold))

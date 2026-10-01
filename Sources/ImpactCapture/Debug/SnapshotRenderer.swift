@@ -21,6 +21,7 @@ enum SnapshotRenderer {
         if let i = arguments.firstIndex(of: "-scale"), arguments.indices.contains(i + 1), let value = Double(arguments[i + 1]) {
             scale = value
         }
+        Brand.isRenderingSnapshot = true
         let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         NSApp.appearance = appearance
         try? FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)

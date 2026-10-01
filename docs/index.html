@@ -3,111 +3,192 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Impact Capture — the work git doesn't see</title>
-<meta name="description" content="A tiny macOS menu bar app that catches the coffee chats, reviews and unblocks that never make it into a commit, as plain Markdown you own.">
-<meta property="og:title" content="Impact Capture — the work git doesn't see">
+<title>Impact Capture: the work git doesn't see</title>
+<meta name="description" content="A small macOS menu bar app that catches the coffee chats, reviews and unblocks that never make it into a commit, as plain Markdown you own.">
+<meta property="og:title" content="Impact Capture: the work git doesn't see">
 <meta property="og:description" content="Catch the work that never makes it into a commit, before review season. Free, open source, macOS.">
 <meta property="og:image" content="https://frugoman.github.io/impact-capture/assets/poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F0F1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1020" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --spark: #FF6A3D; --on-spark: #14161B;
-    --bg: #F6F4EF; --surface: #FFFFFF; --raised: #EEEBE4; --hairline: #E3DFD6;
-    --text: #14161B; --text-2: #5B616C; --text-3: #8C919A;
-    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    --paper: #F0F1F6; --sheet: #FFFFFF; --ink: #14183A; --ink-2: #4F5577; --ink-3: #7E84A1;
+    --rule: #D8DBE7; --grid: #C9CDDD; --pen: #3340DB; --hl: #FFDE3B; --on-hl: #14183A;
+    --c-collab: #3D8BFF; --c-unblock: #5DBA3B; --c-influence: #8A63FF;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --shadow: 0 1px 0 rgba(20,24,58,.04), 0 18px 50px -24px rgba(20,24,58,.28);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #111318; --surface: #1A1D24; --raised: #252933; --hairline: #2D323D;
-      --text: #F3F1EC; --text-2: #A0A6B2; --text-3: #6C7380;
+      --paper: #0D1020; --sheet: #161A2E; --ink: #EEF0FA; --ink-2: #A4AACB; --ink-3: #6E7499;
+      --rule: #2A3050; --grid: #222846; --pen: #9AA4FF;
+      --shadow: 0 1px 0 rgba(0,0,0,.2), 0 24px 60px -24px rgba(0,0,0,.7);
     }
   }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 var(--sans); }
-  a { color: inherit; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
-  .mono { font-family: var(--mono); }
-  .comment { font-family: var(--mono); color: var(--text-3); font-size: 14px; }
-
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
-  nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; }
-  nav .brand img { width: 28px; height: 28px; }
-  nav .links { display: flex; gap: 22px; font-size: 15px; color: var(--text-2); }
-  nav .links a { text-decoration: none; }
-  nav .links a:hover { color: var(--text); }
-
-  .hero { text-align: center; padding: 56px 0 36px; }
-  .hero .icon { width: 96px; height: 96px; filter: drop-shadow(0 10px 24px rgba(255,106,61,.25)); }
-  h1 { font-size: clamp(38px, 6.4vw, 64px); line-height: 1.05; letter-spacing: -0.03em; margin: 22px 0 14px; }
-  h1 .spark { color: var(--spark); }
-  .lede { font-size: clamp(18px, 2.3vw, 21px); color: var(--text-2); max-width: 640px; margin: 0 auto 30px; }
-
-  .install { display: inline-flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--hairline);
-             border-radius: 12px; padding: 6px 6px 6px 18px; max-width: 100%; }
-  .install code { font-family: var(--mono); font-size: 15px; white-space: nowrap; overflow-x: auto; }
-  .install code::before { content: "$ "; color: var(--text-3); }
-  button.copy { font: 600 14px var(--sans); background: var(--spark); color: var(--on-spark); border: 0; border-radius: 8px;
-                padding: 9px 14px; cursor: pointer; flex-shrink: 0; }
-  button.copy:active { transform: translateY(1px); }
-  .alt { margin-top: 14px; font-size: 14px; color: var(--text-3); }
-  .alt a { color: var(--text-2); }
-
-  .demo { margin: 44px auto 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--hairline);
-          box-shadow: 0 30px 80px -30px rgba(20,22,27,.35); background: var(--raised); aspect-ratio: 16 / 10; }
-  .demo video { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-  section { padding: 84px 0 0; }
-  h2 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.02em; line-height: 1.15; margin: 8px 0 14px; }
-  .sub { color: var(--text-2); max-width: 620px; margin: 0; }
-
-  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 34px; }
-  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 22px; }
-  .card h3 { font-size: 18px; margin: 12px 0 6px; }
-  .card p { margin: 0; color: var(--text-2); font-size: 15.5px; }
-  .dot { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: color-mix(in srgb, var(--spark) 14%, transparent); }
-  .dot svg { width: 18px; height: 18px; stroke: var(--spark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
-  .split.flip > :first-child { order: 2; }
-  .shot { width: 100%; height: auto; display: block; border-radius: 14px; border: 1px solid var(--hairline); box-shadow: 0 24px 60px -30px rgba(20,22,27,.4); }
-  .shot.narrow { max-width: 360px; margin: 0 auto; }
-  ul.ticks { list-style: none; padding: 0; margin: 20px 0 0; }
-  ul.ticks li { padding-left: 28px; position: relative; margin: 10px 0; color: var(--text-2); }
-  ul.ticks li::before { content: ""; position: absolute; left: 4px; top: 9px; width: 9px; height: 9px; border-radius: 50%; background: var(--spark); }
-
-  pre.file { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; margin: 0;
-             font: 13.5px/1.6 var(--mono); overflow-x: auto; color: var(--text); }
-  pre.file .h { color: var(--spark); font-weight: 600; }
-  pre.file .q { color: var(--text-3); }
-
-  .privacy { background: var(--surface); border: 1px solid var(--hairline); border-radius: 18px; padding: 36px; display: grid;
-             grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 34px; }
-  .privacy b { display: block; font-size: 17px; margin-bottom: 4px; }
-  .privacy span { color: var(--text-2); font-size: 15.5px; }
-
-  .cta { text-align: center; padding: 100px 0 40px; }
-  footer { border-top: 1px solid var(--hairline); margin-top: 60px; padding: 28px 0 40px; display: flex; flex-wrap: wrap;
-           justify-content: space-between; gap: 14px; font-size: 14px; color: var(--text-3); }
-  footer a { color: var(--text-2); }
-
-  @media (max-width: 820px) {
-    .features, .privacy { grid-template-columns: 1fr; }
-    .split { grid-template-columns: 1fr; gap: 28px; }
-    .split.flip > :first-child { order: 0; }
-    nav .links .hide-sm { display: none; }
-    .install { display: flex; text-align: left; }
-    .install code { font-size: 13px; white-space: normal; overflow-wrap: anywhere; }
+  :root[data-theme="dark"] {
+    --paper: #0D1020; --sheet: #161A2E; --ink: #EEF0FA; --ink-2: #A4AACB; --ink-3: #6E7499;
+    --rule: #2A3050; --grid: #222846; --pen: #9AA4FF;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 24px 60px -24px rgba(0,0,0,.7);
   }
-  @media (prefers-reduced-motion: reduce) { .demo video { display: none; } .demo { background: center / cover url(assets/poster.jpg); } }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; color: var(--ink); background-color: var(--paper);
+    background-image: radial-gradient(var(--grid) 1.1px, transparent 1.3px);
+    background-size: 22px 22px; background-position: 11px 11px;
+    font: 400 18px/1.6 var(--display); font-optical-sizing: auto;
+  }
+  a { color: inherit; text-decoration-color: var(--hl); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--pen); }
+  :focus-visible { outline: 3px solid var(--pen); outline-offset: 3px; border-radius: 6px; }
+  img { max-width: 100%; height: auto; display: block; }
+  kbd { font: 500 .82em var(--mono); background: var(--sheet); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; font-size: 17px; }
+  .brand img { width: 30px; height: 30px; }
+  nav .links { display: flex; gap: 26px; font-size: 15.5px; color: var(--ink-2); }
+  nav .links a { text-decoration: none; }
+  nav .links a:hover { color: var(--ink); }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; padding: 48px 0 72px; }
+  h1 { font-size: clamp(52px, 7.4vw, 100px); font-weight: 800; font-stretch: 78%; line-height: .9; letter-spacing: -.035em; margin: 0 0 26px; }
+  .lede { font-size: clamp(18px, 1.9vw, 21px); color: var(--ink-2); max-width: 30em; margin: 0 0 32px; }
+  .install { display: flex; min-width: 0; align-items: center; gap: 10px; background: var(--sheet); border: 1.5px solid var(--ink);
+             border-radius: 14px; padding: 7px 7px 7px 16px; max-width: 560px; box-shadow: 4px 4px 0 var(--ink); }
+  .install code { font: 500 14px var(--mono); flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  .install code::before { content: "$ "; color: var(--ink-3); }
+  button.copy { font: 700 15px var(--display); background: var(--hl); color: var(--on-hl); border: 1.5px solid var(--on-hl);
+                border-radius: 9px; padding: 9px 16px; cursor: pointer; flex-shrink: 0; transition: transform .12s; }
+  button.copy:active { transform: translateY(1px) scale(.97); }
+  .alt { margin-top: 16px; font-size: 15px; color: var(--ink-3); }
+  .alt a { color: var(--ink-2); }
+
+  /* The hero motion graphic */
+  .stage { position: relative; background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 22px; box-shadow: var(--shadow);
+           overflow: hidden; font-family: var(--mono); font-size: 13px; }
+  .stage-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--rule); color: var(--ink-3); font-size: 12px; }
+  .stage-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--rule); display: block; }
+  .stage-bar span { margin-left: 8px; }
+  .graph { position: relative; height: 300px; }
+  .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .trunk { stroke: var(--ink-3); stroke-width: 2; }
+  .branch { stroke: var(--ink); stroke-width: 2; fill: none; stroke-dasharray: 5 5; }
+  .row { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; height: 30px; opacity: 0; transform: translateY(6px);
+         transition: opacity .35s, transform .35s; }
+  .row.in { opacity: 1; transform: none; }
+  .commit .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--sheet); border: 2px solid var(--ink-3); flex-shrink: 0; margin-left: 4px; }
+  .commit .sha { color: var(--pen); }
+  .commit .msg { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .commit .t { margin-left: auto; color: var(--ink-3); }
+  .event { height: 46px; font-family: var(--display); }
+  .event .node { position: absolute; left: 68px; width: 16px; height: 16px; border-radius: 50%; background: var(--ev); border: 3px solid var(--sheet);
+                 box-shadow: 0 0 0 1.5px var(--ink); transform: scale(0); transition: transform .4s cubic-bezier(.3,1.6,.5,1); }
+  .event.in .node { transform: scale(1); }
+  .event .card { margin-left: 76px; position: relative; isolation: isolate; font-size: 15px; font-weight: 500; line-height: 1.3; color: var(--ink);
+                 white-space: nowrap; flex: 1; min-width: 0; overflow: hidden; }
+  .event .text { position: relative; display: inline-block; max-width: calc(100% - 4px); overflow: hidden; text-overflow: ellipsis; vertical-align: top; padding: 0 3px; }
+  .event .text::before { content: ""; position: absolute; inset: 6% 0 2% 0; background: var(--ev); opacity: .4; border-radius: 3px 9px 4px 7px;
+                         transform: scaleX(0); transform-origin: left; transition: transform .55s cubic-bezier(.6,.05,.3,1); z-index: -1; }
+  .event.marked .text::before { transform: scaleX(1); }
+  .event .kind { display: block; font: 500 11px var(--mono); color: var(--ink-3); margin: 0 0 1px 3px; }
+  .file { border-top: 1px dashed var(--rule); background: color-mix(in srgb, var(--paper) 50%, var(--sheet)); padding: 14px 20px 18px; }
+  .file .name { color: var(--ink-3); font-size: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 12px; }
+  .file .saved { background: var(--hl); color: var(--on-hl); padding: 0 6px; border-radius: 4px; opacity: 0; transition: opacity .3s; }
+  .file .saved.on { opacity: 1; }
+  .file pre { margin: 0; height: 160px; overflow: hidden; font: 12.5px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+  .h { color: var(--pen); }
+  .q { color: var(--ink-3); }
+  .caret { display: inline-block; width: 7px; height: 1.1em; background: var(--ink); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .replay { position: absolute; right: 12px; top: 7px; font: 600 12px var(--display); color: var(--ink-2); background: var(--sheet);
+            border: 1px solid var(--rule); border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+  .replay:hover { color: var(--ink); border-color: var(--ink-3); }
+
+  /* Sections */
+  section { padding: 104px 0 0; }
+  h2 { font-size: clamp(36px, 4.8vw, 58px); font-weight: 800; font-stretch: 80%; line-height: .98; letter-spacing: -.03em; margin: 0 0 18px; max-width: 15ch; }
+  .sub { color: var(--ink-2); max-width: 34em; margin: 0; font-size: 19px; }
+
+  /* The three-step flow, drawn on a commit-graph spine. */
+  .flow { list-style: none; padding: 0; margin: 52px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; position: relative; }
+  .flow::before { content: ""; position: absolute; left: 10px; right: 10px; top: 9px; height: 2px; background: repeating-linear-gradient(90deg, var(--ink-3) 0 6px, transparent 6px 12px); }
+  .flow li { position: relative; padding-top: 42px; }
+  .flow li::before { content: ""; position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--hl); border: 2px solid var(--on-hl); }
+  .flow h3 { font-size: 23px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em; }
+  .flow p { margin: 0 0 22px; color: var(--ink-2); font-size: 16.5px; max-width: 32ch; }
+  .shot { border-radius: 16px; border: 1px solid var(--rule); box-shadow: var(--shadow); background: var(--sheet); }
+  .flow .md { font: 12.5px/1.65 var(--mono); background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; padding: 16px 18px; margin: 0; white-space: pre-wrap; box-shadow: var(--shadow); }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: center; }
+  .split.flip > :first-child { order: 2; }
+  .narrow { max-width: 400px; width: 100%; margin: 0 auto; }
+  .facts { list-style: none; padding: 0; margin: 30px 0 0; display: grid; gap: 14px; max-width: 34em; }
+  .facts li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; color: var(--ink-2); font-size: 17px; }
+  .facts li::before { content: ""; width: 12px; height: 12px; margin-top: 8px; border-radius: 50%; background: var(--ev); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  .file-format { font: 13.5px/1.7 var(--mono); background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px; padding: 28px 26px 24px; margin: 0;
+                 white-space: pre-wrap; word-break: break-word; box-shadow: var(--shadow); position: relative; }
+  .file-format .tab { position: absolute; top: -13px; left: 22px; font-size: 12px; background: var(--ink); color: var(--paper); padding: 2px 10px; border-radius: 6px; }
+
+  .privacy { margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 2px solid var(--ink); }
+  .privacy div { padding: 22px 28px 0 0; }
+  .privacy div + div { padding-left: 28px; border-left: 1px solid var(--rule); }
+  .privacy b { display: block; font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+  .privacy span { color: var(--ink-2); font-size: 16.5px; }
+
+  .cta { padding: 136px 0 40px; }
+  .cta h2 { max-width: none; font-size: clamp(42px, 6.4vw, 84px); }
+  .cta .sub { margin-bottom: 30px; }
+
+  footer { border-top: 1px solid var(--rule); margin-top: 64px; padding: 28px 0 44px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; font-size: 15px; color: var(--ink-3); }
+  footer a { color: var(--ink-2); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-top: 24px; }
+    .split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .split.flip > :first-child { order: 0; }
+    .flow { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+    .flow::before { left: 9px; right: auto; top: 10px; bottom: 10px; width: 2px; height: auto;
+                    background: repeating-linear-gradient(180deg, var(--ink-3) 0 6px, transparent 6px 12px); }
+    .flow li { padding: 0 0 0 42px; }
+    .privacy { grid-template-columns: minmax(0, 1fr); }
+    .privacy div, .privacy div + div { padding: 20px 0 0; border-left: 0; }
+    nav .links .hide-sm { display: none; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 0 16px; }
+    .install { box-shadow: 3px 3px 0 var(--ink); padding-left: 12px; }
+    .install code { font-size: 12px; }
+    .row { padding: 0 12px; }
+    .commit .t { display: none; }
+    .event .node { left: 44px; }
+    .event .card { margin-left: 52px; font-size: 14px; }
+    .file { padding: 12px 14px 16px; }
+    .file .name span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .row, .event .node, .event .text::before, .file .saved { transition: none; }
+    .caret { animation: none; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav>
-    <a class="brand" href="./"><img src="assets/icon.png" alt="">Impact Capture</a>
+    <a class="brand" href="./"><img src="assets/icon.png" alt="" width="30" height="30">Impact Capture</a>
     <div class="links">
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#privacy">Privacy</a>
@@ -116,61 +197,75 @@
   </nav>
 
   <header class="hero">
-    <img class="icon" src="assets/icon.png" alt="Impact Capture app icon">
-    <div class="comment">// the work git doesn't see</div>
-    <h1>Capture the work that never<br>makes it into a <span class="spark">commit</span>.</h1>
-    <p class="lede">The coffee chat that unblocked a team. The review comment that changed a design. Impact Capture catches it in seconds, right when it happens, so it's still there at review time.</p>
-    <div class="install">
-      <code id="brew">brew install --cask frugoman/tap/impact-capture</code>
-      <button class="copy" data-copy="brew">Copy</button>
+    <div>
+      <h1>The work git doesn't see.</h1>
+      <p class="lede">The coffee chat that unblocked a team. The review comment that changed a design. The risk you called early. Impact Capture catches it from your Mac's menu bar, as plain Markdown, so review season isn't guesswork.</p>
+      <div class="install">
+        <code id="brew">brew install --cask frugoman/tap/impact-capture</code>
+        <button class="copy" type="button" data-copy="brew">Copy</button>
+      </div>
+      <div class="alt">Free and open source. macOS 15 or later. Or <a href="https://github.com/frugoman/homebrew-tap/releases?q=impact-capture">download the app</a>.</div>
     </div>
-    <div class="alt">Free and open source · macOS 15 or later · or <a href="https://github.com/frugoman/homebrew-tap/releases?q=impact-capture">download the app</a></div>
 
-    <div class="demo">
-      <video autoplay muted loop playsinline preload="metadata" poster="assets/poster.jpg" aria-label="Impact Capture asks a check-in question after a break, the answer is logged, and it shows up in the menu bar popover">
-        <source src="assets/demo.mp4" type="video/mp4">
-      </video>
+    <div class="stage" role="img" aria-label="Animation: a git log of the day's commits. Between them, the work git doesn't record (a coffee chat, unblocking a teammate, a design review) branches off, gets highlighted, and is written into today's Markdown file.">
+      <div class="stage-bar" aria-hidden="true"><i></i><i></i><i></i><span>git log --graph --since=today</span></div>
+      <button class="replay" type="button" hidden>Replay</button>
+      <div class="graph" aria-hidden="true">
+        <svg><line class="trunk" id="trunk" x1="30" y1="19" x2="30" y2="19"/><g id="branches"></g></svg>
+        <div id="rows"></div>
+      </div>
+      <div class="file" aria-hidden="true">
+        <div class="name"><span>~/Notes/impact/2026-10-02.md</span><span class="saved">saved</span></div>
+        <pre id="md"></pre>
+      </div>
     </div>
   </header>
 
   <section id="how">
-    <div class="comment">// how it works</div>
-    <h2>Seconds now, instead of guessing in six months.</h2>
-    <p class="sub">For senior engineers a big part of the job leaves no trace in Jira or GitHub. Impact Capture asks at the right moments and stays out of the way the rest of the time.</p>
-    <div class="features">
-      <div class="card">
-        <div class="dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-        <h3>Check-ins at natural breaks</h3>
-        <p>When you come back to your Mac after time away, and once at the end of the day. Never mid-flow, capped per day, and it backs off if you keep skipping.</p>
-      </div>
-      <div class="card">
-        <div class="dot"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
-        <h3>Talk or type, from anywhere</h3>
-        <p>Answer with Yes / No, a sentence, or your voice, transcribed on your Mac. A global shortcut (<span class="mono">⌃⌥L</span>) opens the quick-log box on any screen.</p>
-      </div>
-      <div class="card">
-        <div class="dot"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
-        <h3>Plain Markdown you own</h3>
-        <p>One file per day, in a folder you pick. Export any period as a review-ready summary, or point your AI tool of choice at the folder.</p>
-      </div>
-    </div>
+    <h2>Catch it while it's fresh.</h2>
+    <p class="sub">Impact Capture checks in at natural breaks: when you come back to your Mac after time away, and once at the end of the day. Never mid-flow, capped per day, and it backs off if you keep skipping.</p>
+    <ol class="flow">
+      <li>
+        <h3>It asks at a break</h3>
+        <p>One small question, on every screen. Answer Yes or No, or skip with <kbd>esc</kbd>.</p>
+        <picture>
+          <source srcset="assets/checkin-ask-dark.png" media="(prefers-color-scheme: dark)">
+          <img class="shot" src="assets/checkin-ask.png" alt="A check-in asking: You were away 25 min. Did you talk to anyone about work?" width="920" height="340" loading="lazy">
+        </picture>
+      </li>
+      <li>
+        <h3>You talk or type</h3>
+        <p>A sentence is plenty. Speech is transcribed on your Mac. Tag it if you like.</p>
+        <picture>
+          <source srcset="assets/checkin-log-dark.png" media="(prefers-color-scheme: dark)">
+          <img class="shot" src="assets/checkin-log.png" alt="The quick log box with a note about pairing with Ana, tagged Unblocking" width="920" height="672" loading="lazy">
+        </picture>
+      </li>
+      <li>
+        <h3>It lands in today's file</h3>
+        <p>Added to one Markdown file per day, in a folder you pick.</p>
+<pre class="md"><span class="h">### 11:15 · shortcut · typed · #unblocking</span>
+
+Paired with Ana on the flaky checkout test.
+Found a race in the mock server.</pre>
+      </li>
+    </ol>
   </section>
 
   <section>
     <div class="split">
       <div>
-        <div class="comment">// menu bar</div>
-        <h2>Your week at a glance.</h2>
-        <p class="sub">Click the menu bar icon to log something, tag it, and see today's and this week's captures.</p>
-        <ul class="ticks">
-          <li>Categories like Unblocking, Influence, Mentoring and Risk spotted</li>
-          <li>Edit or delete anything, any time</li>
-          <li>Streaks, so the habit sticks</li>
+        <h2>Your week, one click away.</h2>
+        <p class="sub">Click the menu bar icon to log something and scroll back through the day. Or press <kbd>⌃⌥L</kbd> anywhere to type, <kbd>⌃⌥⌘L</kbd> to talk.</p>
+        <ul class="facts">
+          <li style="--ev: var(--c-unblock)"><span><b>Categories that match how you're reviewed:</b> unblocking, influence, mentoring, risk spotted.</span></li>
+          <li style="--ev: var(--c-influence)"><span><b>Edit or delete anything.</b> The file changes with it.</span></li>
+          <li style="--ev: var(--hl)"><span><b>A streak and a week strip</b>, so the habit sticks without nagging.</span></li>
         </ul>
       </div>
-      <picture>
+      <picture class="narrow">
         <source srcset="assets/popover-dark.png" media="(prefers-color-scheme: dark)">
-        <img class="shot narrow" src="assets/popover.png" alt="The Impact Capture popover with today's captures" loading="lazy" width="400" height="580">
+        <img class="shot" src="assets/popover.png" alt="The Impact Capture popover: 3 captures today, a week strip, and today's timeline" width="800" height="1160" loading="lazy">
       </picture>
     </div>
   </section>
@@ -178,13 +273,12 @@
   <section>
     <div class="split flip">
       <div>
-        <div class="comment">// review season</div>
-        <h2>From scattered notes to evidence in one click.</h2>
-        <p class="sub">Export the last two weeks, the quarter or the half as Markdown for your performance doc, a 1:1, or an AI tool. Settings has a ready-made prompt that turns your captures into performance evidence.</p>
+        <h2>Review season in a minute.</h2>
+        <p class="sub">Export the last two weeks, the quarter or the half as Markdown for your performance doc, a 1:1, or an AI tool. Settings has a ready-made prompt that turns captures into evidence.</p>
       </div>
       <picture>
         <source srcset="assets/export-dark.png" media="(prefers-color-scheme: dark)">
-        <img class="shot" src="assets/export.png" alt="The export window with a Markdown preview of two weeks of captures" loading="lazy" width="840" height="580">
+        <img class="shot" src="assets/export.png" alt="The export window with a Markdown preview of two weeks of captures" width="1680" height="1160" loading="lazy">
       </picture>
     </div>
   </section>
@@ -192,11 +286,10 @@
   <section>
     <div class="split">
       <div>
-        <div class="comment">// the file format</div>
-        <h2>Just text files. No lock-in.</h2>
-        <p class="sub">Grep it, sync it, version it, read it in ten years. Each entry records when, how and why it was captured.</p>
+        <h2>Just text files.</h2>
+        <p class="sub">Grep it, sync it, version it, read it in ten years. Each entry records when, how and why it was captured, and the question it answered.</p>
       </div>
-<pre class="file"><span class="h"># Impact captures — 2026-09-17 (Thursday)</span>
+<pre class="file-format"><span class="tab">2026-09-17.md</span><span class="h"># Impact captures — 2026-09-17 (Thursday)</span>
 
 <span class="h">### 10:42 · prompt · away-return · voice · #collaboration</span>
 
@@ -208,36 +301,30 @@ split the migration into two PRs.</pre>
   </section>
 
   <section id="privacy">
-    <div class="comment">// privacy</div>
     <h2>Nothing leaves your Mac.</h2>
     <div class="privacy">
-      <div><b>No server, no account</b><span>There is nothing to sign up for and nothing to sync to.</span></div>
-      <div><b>On-device speech</b><span>Voice notes are transcribed on your Mac. The mic is only on while the capture box shows it's listening.</span></div>
+      <div><b>No server, no account</b><span>There's nothing to sign up for and nothing to sync to.</span></div>
+      <div><b>On-device speech</b><span>Voice notes are transcribed on your Mac. The mic is only on while the capture box says it's listening.</span></div>
       <div><b>No analytics</b><span>No tracking, no telemetry. The source is on GitHub if you want to check.</span></div>
     </div>
   </section>
 
   <div class="cta">
-    <h2>Start capturing today.</h2>
-    <p class="sub" style="margin: 0 auto 26px;">Setup takes a minute: pick a folder, choose how often it may check in, set your shortcuts.</p>
+    <h2>Start your log today.</h2>
+    <p class="sub">Setup takes a minute: pick a folder, choose how often it may check in, set your shortcuts.</p>
     <div class="install">
       <code id="brew2">brew install --cask frugoman/tap/impact-capture</code>
-      <button class="copy" data-copy="brew2">Copy</button>
+      <button class="copy" type="button" data-copy="brew2">Copy</button>
     </div>
   </div>
 
   <footer>
-    <span>Made by <a href="https://github.com/frugoman">@frugoman</a> · <a href="https://github.com/frugoman/impact-capture">Source on GitHub</a></span>
+    <span>Made by <a href="https://github.com/frugoman">@frugoman</a>. <a href="https://github.com/frugoman/impact-capture">Source on GitHub</a>.</span>
     <span>Also by me: <a href="https://frugoman.github.io/meeting-flash/">MeetingFlash</a>, a screen-sized nudge before every meeting.</span>
   </footer>
 </div>
-<script>
-  // Some browsers ignore the autoplay attribute; start the demo when it scrolls into view.
-  const video = document.querySelector(".demo video");
-  new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting) video.play().catch(() => {}); else video.pause();
-  }, { threshold: 0.3 }).observe(video);
 
+<script>
   document.querySelectorAll("button.copy").forEach(button => {
     button.addEventListener("click", async () => {
       const text = document.getElementById(button.dataset.copy).textContent;
@@ -246,6 +333,158 @@ split the migration into two PRs.</pre>
       setTimeout(() => (button.textContent = "Copy"), 1600);
     });
   });
+
+  // Hero: the day's commits tick by; the work between them branches off, gets highlighted, and is written to today's file.
+  (() => {
+    const story = [
+      { type: "commit", sha: "a3f9e12", msg: "Fix flaky checkout test", t: "09:12" },
+      { type: "event", color: "var(--c-collab)", kind: "check-in, after 25 min away", text: "Coffee with Marco: split the migration into two PRs",
+        md: [["h", "### 10:42 · prompt · away-return · voice · #collaboration"], ["q", "> Q: Did you talk to anyone about work?"], ["", "Coffee with Marco from Payments. Split the migration into two PRs."]] },
+      { type: "commit", sha: "7bc2104", msg: "Add retry to payment client", t: "11:40" },
+      { type: "event", color: "var(--c-unblock)", kind: "shortcut ⌃⌥L", text: "Unblocked Ana: found the race in the mock server",
+        md: [["h", "### 13:05 · shortcut · typed · #unblocking"], ["", "Paired with Ana. Found the race in the mock server."]] },
+      { type: "commit", sha: "e41d9a0", msg: "Bump SDK to 8.2", t: "15:22" },
+      { type: "event", color: "var(--c-influence)", kind: "end of day", text: "Talked the team out of edge caching until we measure",
+        md: [["h", "### 17:30 · prompt · end-of-day · voice · #influence"], ["", "Pushed back on edge caching in design review. Measuring first."]] },
+    ];
+    const stage = document.querySelector(".stage");
+    const rowsEl = document.getElementById("rows");
+    const branches = document.getElementById("branches");
+    const trunk = document.getElementById("trunk");
+    const md = document.getElementById("md");
+    const file = document.querySelector(".file");
+    const scroller = md;
+    const saved = file.querySelector(".saved");
+    const replay = stage.querySelector(".replay");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let run = 0, visible = true, resumeTick = null;
+
+    // A pausable sleep: stops while the hero is off screen, and abandons runs that a newer run replaced.
+    const sleep = (ms, id) => new Promise(resolve => {
+      let elapsed = 0, last = performance.now();
+      const tick = now => {
+        if (id !== run) return;
+        if (!visible) { resumeTick = () => { last = performance.now(); tick(last); }; return; }
+        elapsed += now - last; last = now;
+        if (elapsed >= ms) resolve(); else setTimeout(() => tick(performance.now()), Math.min(ms - elapsed, 40));
+      };
+      setTimeout(() => tick(performance.now()), Math.min(ms, 40));
+    });
+
+    function layout() {
+      rowsEl.replaceChildren(); branches.replaceChildren();
+      md.innerHTML = '<span class="h"># Impact captures — 2026-10-02 (Friday)</span><span class="caret"></span>';
+      const small = innerWidth <= 520, trunkX = small ? 22 : 30, nodeX = small ? 52 : 76;
+      trunk.setAttribute("x1", trunkX); trunk.setAttribute("x2", trunkX);
+      let y = 12, lastCommitY = 0;
+      for (const step of story) {
+        const row = document.createElement("div");
+        row.className = "row " + step.type;
+        row.style.top = y + "px";
+        if (step.type === "commit") {
+          row.innerHTML = '<span class="dot"></span><span class="sha"></span><span class="msg"></span><span class="t"></span>';
+          row.querySelector(".sha").textContent = step.sha;
+          row.querySelector(".msg").textContent = step.msg;
+          row.querySelector(".t").textContent = step.t;
+          step.y = y + 15; lastCommitY = step.y;
+          y += 40;
+        } else {
+          row.style.setProperty("--ev", step.color);
+          row.innerHTML = '<span class="node"></span><span class="card"><span class="kind"></span><span class="text"></span></span>';
+          row.querySelector(".kind").textContent = step.kind;
+          row.querySelector(".text").textContent = step.text;
+          const mid = y + 23;
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("class", "branch");
+          path.setAttribute("d", `M${trunkX} ${lastCommitY + 8} C ${trunkX} ${mid}, ${trunkX} ${mid}, ${nodeX} ${mid}`);
+          path.style.clipPath = "inset(0 100% 0 0)";
+          branches.appendChild(path);
+          step.path = path;
+          y += 54;
+        }
+        step.row = row;
+        rowsEl.appendChild(row);
+      }
+      trunk.setAttribute("y1", story[0].y);
+      trunk.setAttribute("y2", story[0].y);
+    }
+
+    function growTrunk(to) {
+      trunk.animate([{ y2: trunk.getAttribute("y2") }, { y2: to }], { duration: 300, easing: "ease-out" });
+      trunk.setAttribute("y2", to);
+    }
+
+    async function type(lines, id) {
+      const caret = md.querySelector(".caret");
+      md.insertBefore(document.createTextNode("\n"), caret);
+      for (const [cls, text] of lines) {
+        const line = document.createElement("span");
+        line.className = cls;
+        md.insertBefore(document.createTextNode("\n"), caret);
+        md.insertBefore(line, caret);
+        if (reduced) { line.textContent = text; continue; }
+        for (let i = 0; i < text.length; i += 2) {
+          line.textContent = text.slice(0, i + 2);
+          scroller.scrollTop = scroller.scrollHeight;
+          await sleep(16, id);
+        }
+      }
+      scroller.scrollTop = scroller.scrollHeight;
+    }
+
+    async function play() {
+      const id = ++run;
+      layout();
+      saved.classList.remove("on");
+      scroller.scrollTop = 0;
+      if (reduced) {
+        for (const s of story) {
+          s.row.classList.add("in", "marked");
+          if (s.path) s.path.style.clipPath = "none";
+          if (s.type === "commit") growTrunk(s.y);
+          if (s.md) await type(s.md, id);
+        }
+        scroller.scrollTop = 0;
+        return;
+      }
+      await sleep(500, id);
+      for (const s of story) {
+        if (s.type === "commit") {
+          growTrunk(s.y);
+          s.row.classList.add("in");
+          await sleep(600, id);
+          continue;
+        }
+        s.path.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 450, easing: "ease-out", fill: "forwards" });
+        await sleep(320, id);
+        s.row.classList.add("in");
+        await sleep(650, id);
+        s.row.classList.add("marked");
+        await sleep(500, id);
+        saved.classList.remove("on");
+        await type(s.md, id);
+        saved.classList.add("on");
+        await sleep(800, id);
+      }
+      await sleep(4500, id);
+      play();
+    }
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && resumeTick) { const resume = resumeTick; resumeTick = null; resume(); }
+    }).observe(stage);
+
+    if (reduced) { replay.hidden = false; replay.addEventListener("click", play); }
+    let width = innerWidth, resizeTimer;
+    addEventListener("resize", () => {
+      if (innerWidth === width) return;
+      width = innerWidth;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(play, 250);
+    });
+    play();
+  })();
 </script>
 </body>
 </html>

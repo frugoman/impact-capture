@@ -57,13 +57,13 @@ struct ExportView: View {
                 .padding(.bottom, 24)
         }
         .frame(width: 840, height: 580)
-        .background(Brand.background)
+        .background(PaperBackground())
     }
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Export")
-                .font(Brand.display(22, .bold))
+                .font(Brand.display(21, .bold))
                 .foregroundStyle(Brand.text)
             Text("Review-ready Markdown for your performance doc, a 1:1, or an AI tool.")
                 .font(.system(size: 12.5))
@@ -78,8 +78,9 @@ struct ExportView: View {
                     let range = preset.range(now: Date(), calendar: .current)
                     CategoryChip(
                         name: preset.rawValue,
-                        color: Brand.spark,
-                        isSelected: Calendar.current.isDate(range.0, inSameDayAs: start) && Calendar.current.isDate(range.1, inSameDayAs: end)
+                        color: Brand.highlighter,
+                        isSelected: Calendar.current.isDate(range.0, inSameDayAs: start) && Calendar.current.isDate(range.1, inSameDayAs: end),
+                        solid: true
                     ) {
                         start = range.0
                         end = range.1
@@ -96,10 +97,12 @@ struct ExportView: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("\(count)")
-                    .font(Brand.mono(28, .semibold))
-                    .foregroundStyle(count > 0 ? Brand.spark : Brand.tertiaryText)
-                Text(count == 1 ? "capture" : "captures")
-                    .font(Brand.mono(12))
+                    .font(Brand.display(30, .bold))
+                    .foregroundStyle(count > 0 ? Brand.text : Brand.tertiaryText)
+                    .contentTransition(.numericText())
+                    .animation(Brand.springy, value: count)
+                Text(count == 1 ? "capture in this period" : "captures in this period")
+                    .font(.system(size: 12))
                     .foregroundStyle(Brand.secondaryText)
             }
 

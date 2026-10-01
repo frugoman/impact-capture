@@ -12,8 +12,8 @@ struct Wordmark: View {
                     .font(Brand.display(14))
                     .foregroundStyle(Brand.text)
                 if showsTagline {
-                    Text("// the work git doesn't see")
-                        .font(Brand.mono(10.5))
+                    Text("The work git doesn't see")
+                        .font(.system(size: 11))
                         .foregroundStyle(Brand.tertiaryText)
                         .lineLimit(1)
                 }
@@ -30,9 +30,9 @@ struct SectionLabel: View {
     }
 
     var body: some View {
-        Text("// \(text.lowercased())")
-            .font(Brand.mono(10.5, .medium))
-            .foregroundStyle(Brand.tertiaryText)
+        Text(text.prefix(1).uppercased() + text.dropFirst())
+            .font(.system(size: 11.5, weight: .semibold))
+            .foregroundStyle(Brand.secondaryText)
     }
 }
 
@@ -42,14 +42,18 @@ struct SparkButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Brand.display(compact ? 12 : 13))
-            .foregroundStyle(Brand.onSpark)
-            .padding(.horizontal, compact ? 10 : 14)
+            .font(.system(size: compact ? 12 : 13, weight: .semibold))
+            .foregroundStyle(Brand.onHighlighter)
+            .padding(.horizontal, compact ? 12 : 16)
             .padding(.vertical, compact ? 5 : 7)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Brand.spark.opacity(configuration.isPressed ? 0.8 : 1))
+                Capsule(style: .continuous)
+                    .fill(Brand.highlighter)
+                    .shadow(color: Color(hex: 0xB89A00).opacity(isEnabled ? 0.35 : 0), radius: 0, x: 0, y: configuration.isPressed ? 0 : 1.5)
             )
+            .overlay(Capsule(style: .continuous).stroke(Color(hex: 0x14183A).opacity(0.12)))
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
             .opacity(isEnabled ? 1 : 0.4)
             .contentShape(Rectangle())
     }
@@ -61,15 +65,17 @@ struct QuietButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Brand.display(compact ? 12 : 13, .medium))
+            .font(.system(size: compact ? 12 : 13, weight: .medium))
             .foregroundStyle(Brand.text)
-            .padding(.horizontal, compact ? 10 : 14)
+            .padding(.horizontal, compact ? 12 : 16)
             .padding(.vertical, compact ? 5 : 7)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Brand.raised.opacity(configuration.isPressed ? 1 : 0.7))
+                Capsule(style: .continuous)
+                    .fill(configuration.isPressed ? Brand.raised : Brand.surface)
             )
-            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Brand.hairline))
+            .overlay(Capsule(style: .continuous).stroke(Brand.hairline))
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
             .opacity(isEnabled ? 1 : 0.4)
             .contentShape(Rectangle())
     }
@@ -129,20 +135,33 @@ struct CategoryChip: View {
     let name: String
     let color: Color
     let isSelected: Bool
+    /// Draws the selection as a full-strength highlighter swipe with no colour dot, for choices that aren't categories.
+    var solid = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                Circle().fill(color).frame(width: 6, height: 6)
+                if !solid {
+                    Circle()
+                        .fill(isSelected ? Brand.text.opacity(0.75) : color)
+                        .frame(width: 6, height: 6)
+                }
                 Text(name)
                     .font(.system(size: 11.5, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? Brand.text : Brand.secondaryText)
+                    .foregroundStyle(isSelected ? (solid ? Brand.onHighlighter : Brand.text) : Brand.secondaryText)
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 4)
-            .background(Capsule().fill(isSelected ? color.opacity(0.2) : Color.clear))
-            .overlay(Capsule().strokeBorder(isSelected ? color.opacity(0.7) : Brand.hairline))
+            .background {
+                if isSelected {
+                    HighlightShape()
+                        .fill(solid ? Brand.highlighter : color.opacity(0.42))
+                        .transition(.scale(scale: 0, anchor: .leading).combined(with: .opacity))
+                }
+            }
+            .overlay(Capsule().strokeBorder(isSelected ? Color.clear : Brand.hairline))
+            .animation(.snappy(duration: 0.22), value: isSelected)
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -179,18 +198,18 @@ struct MicButton: View {
             ZStack {
                 if isRecording {
                     Circle()
-                        .stroke(Brand.spark.opacity(0.5), lineWidth: 2)
+                        .stroke(Brand.highlighter, lineWidth: 2)
                         .frame(width: 30, height: 30)
                         .scaleEffect(pulse ? 1.35 : 1)
                         .opacity(pulse ? 0 : 1)
                 }
                 Circle()
-                    .fill(isRecording ? Brand.spark : Brand.surface)
+                    .fill(isRecording ? Brand.highlighter : Brand.surface)
                     .overlay(Circle().stroke(isRecording ? Color.clear : Brand.hairline))
                     .frame(width: 28, height: 28)
                 Image(systemName: isRecording ? "stop.fill" : "mic.fill")
                     .font(.system(size: isRecording ? 10 : 12, weight: .semibold))
-                    .foregroundStyle(isRecording ? Brand.onSpark : Brand.secondaryText)
+                    .foregroundStyle(isRecording ? Brand.onHighlighter : Brand.secondaryText)
             }
             .frame(width: 34, height: 34)
             .contentShape(Circle())
@@ -244,11 +263,13 @@ struct CaptureEditor: View {
                 }
             }
             .frame(height: height)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Brand.surface))
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Brand.surface))
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(transcriber.isRecording ? Brand.spark : Brand.hairline, lineWidth: transcriber.isRecording ? 1.5 : 1)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(isFocused || transcriber.isRecording ? Brand.spark : Brand.hairline, lineWidth: isFocused || transcriber.isRecording ? 1.5 : 1)
             )
+            .shadow(color: Brand.spark.opacity(isFocused ? 0.14 : 0), radius: 6)
+            .animation(.easeOut(duration: 0.15), value: isFocused)
             .overlay(alignment: .bottomTrailing) {
                 MicButton(isRecording: transcriber.isRecording, action: onToggleMic)
                     .padding(3)

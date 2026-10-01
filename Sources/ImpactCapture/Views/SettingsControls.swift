@@ -61,11 +61,11 @@ struct FrequencyPicker: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(frequency == option ? Brand.spark.opacity(0.08) : Brand.surface)
+                            .fill(frequency == option ? Brand.highlighter.opacity(0.18) : Brand.surface)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(frequency == option ? Brand.spark : Brand.hairline, lineWidth: frequency == option ? 1.5 : 1)
+                            .stroke(frequency == option ? Brand.text.opacity(0.7) : Brand.hairline, lineWidth: frequency == option ? 1.5 : 1)
                     )
                     .contentShape(Rectangle())
                 }
@@ -95,10 +95,10 @@ struct WorkdayPicker: View {
                     }
                 } label: {
                     Text(Calendar.current.veryShortWeekdaySymbols[weekday - 1])
-                        .font(Brand.mono(11.5, .semibold))
-                        .foregroundStyle(isOn ? Brand.onSpark : Brand.secondaryText)
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(isOn ? Brand.onHighlighter : Brand.secondaryText)
                         .frame(width: 28, height: 28)
-                        .background(Circle().fill(isOn ? Brand.spark : Brand.raised.opacity(0.7)))
+                        .background(Circle().fill(isOn ? Brand.highlighter : Brand.raised.opacity(0.7)))
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)

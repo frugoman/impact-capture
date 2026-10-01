@@ -93,19 +93,22 @@ struct CaptureSessionView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 LogoMark(size: 20)
-                Text(session.question == nil ? "log" : "check-in")
-                    .font(Brand.mono(11, .medium))
-                    .foregroundStyle(Brand.secondaryText)
+                Text(session.question == nil ? "Quick log" : "Check-in")
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(Brand.onHighlighter)
+                    .highlighted(opacity: 1, animated: true)
                 Spacer()
                 if session.phase == .asking {
-                    Text("esc to skip")
-                        .font(Brand.mono(10))
+                    KeyCap(text: "esc")
+                    Text("skips")
+                        .font(.system(size: 11))
                         .foregroundStyle(Brand.tertiaryText)
                 }
             }
 
             Text(session.prompt)
-                .font(Brand.display(18))
+                .font(Brand.display(19, .semibold))
+                .lineSpacing(2)
                 .foregroundStyle(Brand.text)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -117,18 +120,20 @@ struct CaptureSessionView: View {
         .padding(22)
         .frame(width: 460)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Brand.background)
+            PaperBackground()
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(Brand.hairline)
         )
-        .overlay(alignment: .top) {
+        .overlay(alignment: .leading) {
+            // A margin rule, like the red line on notebook paper, in highlighter.
             Capsule()
-                .fill(Brand.spark)
-                .frame(width: 48, height: 3)
-                .padding(.top, 1)
+                .fill(Brand.highlighter)
+                .frame(width: 3)
+                .padding(.vertical, 22)
+                .padding(.leading, 1)
         }
     }
 
@@ -160,12 +165,8 @@ struct CaptureSessionView: View {
 
             HStack(spacing: 8) {
                 KeyCap(text: "⌘↩")
-                Text("log")
-                    .font(Brand.mono(10))
-                    .foregroundStyle(Brand.tertiaryText)
-                KeyCap(text: "esc")
-                Text("cancel")
-                    .font(Brand.mono(10))
+                Text("logs")
+                    .font(.system(size: 11))
                     .foregroundStyle(Brand.tertiaryText)
                 Spacer()
                 Button("Cancel") { session.cancel() }

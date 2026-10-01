@@ -39,7 +39,7 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(section.rawValue)
-                        .font(Brand.display(22, .bold))
+                        .font(Brand.display(21, .bold))
                         .foregroundStyle(Brand.text)
                         .padding(.bottom, 20)
                     content
@@ -51,7 +51,7 @@ struct SettingsView: View {
             }
         }
         .frame(width: 780, height: 580)
-        .background(Brand.background)
+        .background(PaperBackground())
     }
 
     private var sidebar: some View {
@@ -72,7 +72,12 @@ struct SettingsView: View {
                         .padding(.vertical, 7)
                         .background(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(section == item ? Brand.raised : .clear)
+                                .fill(section == item ? Brand.surface : .clear)
+                                .overlay(alignment: .leading) {
+                                    if section == item {
+                                        Capsule().fill(Brand.highlighter).frame(width: 3, height: 16).offset(x: -6)
+                                    }
+                                }
                         )
                         .contentShape(Rectangle())
                 }
@@ -86,7 +91,7 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 10)
         .frame(width: 210)
-        .background(Brand.surface.opacity(0.5))
+        .background(Brand.background.opacity(0.85))
     }
 
     @ViewBuilder
