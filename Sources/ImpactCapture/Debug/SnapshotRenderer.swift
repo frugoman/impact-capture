@@ -4,10 +4,13 @@ import ImpactCaptureCore
 import SwiftUI
 
 /// Renders every screen to PNG with sample data, for design review without clicking through the app.
-/// Usage: `ImpactCapture.app/Contents/MacOS/ImpactCapture -snapshot <output dir> [-dark]`
+/// Usage: `ImpactCapture.app/Contents/MacOS/ImpactCapture -snapshot <output dir> [-dark] [-scale 2]`
 /// Uses a throwaway defaults suite and folder, so real settings and captures are untouched.
 @MainActor
 enum SnapshotRenderer {
+    /// Pixels per point in the PNGs (2 for Retina-sharp images, e.g. for the website).
+    private static var scale = 1.0
+
     static func runIfRequested() -> Bool {
         let arguments = CommandLine.arguments
         guard let index = arguments.firstIndex(of: "-snapshot"), arguments.indices.contains(index + 1) else {
@@ -15,6 +18,9 @@ enum SnapshotRenderer {
         }
         let output = URL(fileURLWithPath: arguments[index + 1], isDirectory: true)
         let dark = arguments.contains("-dark")
+        if let i = arguments.firstIndex(of: "-scale"), arguments.indices.contains(i + 1), let value = Double(arguments[i + 1]) {
+            scale = value
+        }
         let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         NSApp.appearance = appearance
         try? FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
@@ -99,7 +105,12 @@ enum SnapshotRenderer {
         host.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.4))
 
-        if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+        if let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: Int(frameSize.width * scale), pixelsHigh: Int(frameSize.height * scale),
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) {
+            rep.size = frameSize
             host.cacheDisplay(in: host.bounds, to: rep)
             try? rep.representation(using: .png, properties: [:])?.write(to: directory.appendingPathComponent("\(name).png"))
         }

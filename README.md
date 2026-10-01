@@ -1,6 +1,8 @@
 # Impact Capture
 
-**Capture the work that never makes it into a commit.**
+**Capture the work that never makes it into a commit.** · [Website](https://frugoman.github.io/impact-capture/)
+
+![A check-in after a break, answered in a few seconds and logged to today's captures](docs/assets/demo.gif)
 
 The coffee chat that unblocked a team. The review comment that changed a design. The risk you called early. For senior engineers this is a big part of the job, it leaves no trace in Jira or GitHub, and it's gone from memory by review season.
 
@@ -87,3 +89,7 @@ make brew-release  # release the zip + update the cask on frugoman/homebrew-tap
 - `Sources/ImpactCapture` is the app: the status item popover, check-in panels, setup, settings, global shortcuts and dictation.
 
 Before building locally, set `DEVELOPMENT_TEAM` in `project.yml` to your own team.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
