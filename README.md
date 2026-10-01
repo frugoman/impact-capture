@@ -90,6 +90,10 @@ make brew-release  # release the zip + update the cask on frugoman/homebrew-tap
 
 Before building locally, set `DEVELOPMENT_TEAM` in `project.yml` to your own team.
 
+## Support
+
+Impact Capture is free and open source. If it's useful to you, you can [buy me a coffee](https://buymeacoffee.com/frugoman) ☕
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

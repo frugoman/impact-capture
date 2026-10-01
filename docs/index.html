@@ -59,6 +59,20 @@
   nav .links { display: flex; gap: 26px; font-size: 15.5px; color: var(--ink-2); }
   nav .links a { text-decoration: none; }
   nav .links a:hover { color: var(--ink); }
+  nav .links { align-items: center; }
+  .brand, nav .links a { white-space: nowrap; }
+
+  /* Buy Me a Coffee: the page's highlighter yellow is close to BMC's own, so it reads as theirs. */
+  a.coffee { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; font: 700 16px var(--display); text-decoration: none;
+             background: var(--hl); color: var(--on-hl); border: 1.5px solid var(--on-hl); border-radius: 10px; padding: 10px 18px;
+             box-shadow: 3px 3px 0 var(--on-hl); transition: transform .12s, box-shadow .12s; }
+  a.coffee:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--on-hl); }
+  a.coffee:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--on-hl); }
+  nav .links a.coffee { font-size: 14.5px; padding: 5px 12px; border-radius: 8px; box-shadow: 2px 2px 0 var(--on-hl); color: var(--on-hl); }
+  .support { margin-top: 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; background: var(--sheet);
+             border: 1.5px solid var(--ink); border-radius: 18px; padding: 28px 32px; box-shadow: 5px 5px 0 var(--ink); }
+  .support h3 { font-size: 24px; font-weight: 800; font-stretch: 85%; letter-spacing: -.01em; margin: 0 0 4px; }
+  .support p { margin: 0; color: var(--ink-2); font-size: 17px; }
 
   /* Hero */
   .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; padding: 48px 0 72px; }
@@ -166,6 +180,7 @@
     .privacy { grid-template-columns: minmax(0, 1fr); }
     .privacy div, .privacy div + div { padding: 20px 0 0; border-left: 0; }
     nav .links .hide-sm { display: none; }
+    .support { flex-direction: column; align-items: flex-start; padding: 24px; }
   }
   @media (max-width: 520px) {
     .wrap { padding: 0 16px; }
@@ -192,7 +207,8 @@
     <div class="links">
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#privacy">Privacy</a>
-      <a href="https://github.com/frugoman/impact-capture">GitHub</a>
+      <a class="hide-sm" href="https://github.com/frugoman/impact-capture">GitHub</a>
+      <a class="coffee" href="https://buymeacoffee.com/frugoman">☕ Buy me a coffee</a>
     </div>
   </nav>
 
@@ -317,6 +333,14 @@ split the migration into two PRs.</pre>
       <button class="copy" type="button" data-copy="brew2">Copy</button>
     </div>
   </div>
+
+  <aside class="support">
+    <div>
+      <h3>Impact Capture is free, and always will be.</h3>
+      <p>I build it in my spare time. If it's useful to you, a coffee keeps it going.</p>
+    </div>
+    <a class="coffee" href="https://buymeacoffee.com/frugoman">☕ Buy me a coffee</a>
+  </aside>
 
   <footer>
     <span>Made by <a href="https://github.com/frugoman">@frugoman</a>. <a href="https://github.com/frugoman/impact-capture">Source on GitHub</a>.</span>
