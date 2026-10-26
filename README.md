@@ -1,6 +1,6 @@
 # Impact Capture
 
-**Capture the work that never makes it into a commit.** · [Website](https://frugoman.github.io/impact-capture/)
+**Capture the work that never makes it into a commit.** · [Website](https://impactcapture.frusoft.dev/)
 
 ![The Impact Capture popover: today's captures on a timeline, with a week strip and streak](docs/assets/popover.png)
 
